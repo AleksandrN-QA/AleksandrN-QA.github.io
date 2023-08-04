@@ -1,6 +1,32 @@
-{
-"errorId": "5348858c-b194-41ee-b456-40177886e2c2",
-"name": "ValidationError",
-"debugMessage": "User does not have access.",
-"message": "Something went wrong. (400)"
-}
+name: Линтер и Телеграм
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Запуск CSS линтера
+    runs-on: ubuntu-latest
+    steps:
+    - name: Send telegram message on push
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TG_ID }}
+        token: ${{ secrets.TG_TOKEN }}
+        message: |
+          ${{ github.actor }} создал новый коммит: ${{ github.event.commits[0].message }}
+          Ссылка на коммит: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+          Репозиторий: https://github.com/${{ github.repository }}
+            
+          CI/CD github actions: https://github.com/${{ github.repository }}/actions
+          https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Пройти проверки CSS линтера
+      uses: actions-hub/stylelint@master
+      env:        
+        PATTERN: "**/*.css"
